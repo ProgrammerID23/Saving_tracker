@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../Controller/Database_Controller.dart';
 import '../Model/ExpenseModel.dart';
@@ -68,15 +67,13 @@ class _AddExpenseFormState extends State<AddExpenseForm> {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              // Ambil data dari input
+            onPressed: () async {
               final name = _nameController.text;
               final amount = double.tryParse(_amountController.text) ?? 0.0;
               final date = _dateController.text;
               final category = _categoryController.text;
               final description = _descriptionController.text;
 
-              // Buat objek Expense
               if (name.isNotEmpty && amount > 0) {
                 final expense = Expense(
                   name: name,
@@ -86,24 +83,12 @@ class _AddExpenseFormState extends State<AddExpenseForm> {
                   description: description,
                 );
 
-                // Dapatkan instance dari DatabaseController
-                DatabaseController databaseController = Get.find<DatabaseController>();
-
-                // Panggil fungsi addExpenseToAppwrite dengan expense yang baru
-                databaseController.addExpenseToAppwrite(expense);
-
-                // Bersihkan input fields
-                _nameController.clear();
-                _amountController.clear();
-                _dateController.clear();
-                _categoryController.clear();
-                _descriptionController.clear();
-
-                setState(() {});
+                widget.onExpenseAdded(expense); // Memastikan notifikasi dikirim ke MyHomePage
               }
             },
             child: Text('Add Expense'),
           ),
+
         ],
       ),
     );

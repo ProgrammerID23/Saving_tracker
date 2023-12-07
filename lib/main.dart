@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-
 import 'Views/AddExpense.dart';
 import 'Controller/Database_Controller.dart';
 import 'Controller/notification_handler.dart';
@@ -14,9 +13,8 @@ import 'Model/ExpenseModel.dart';
 import 'Views/EditExpense.dart';
 import 'Views/LoginPage.dart';
 import 'Views/RegisterPage.dart';
-import 'Views/UserProfile.dart';
 import 'package:saving_tracker/Views/BudgetView.dart';
-
+import 'Views/UserProfile.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -32,8 +30,9 @@ void main() async {
 
   runApp(
     GetMaterialApp(
-      home: LoginPage(), // Set initial page to LoginPage
-      initialRoute: '/login', // Set initial route to '/login'
+      debugShowCheckedModeBanner: false, // Nonaktifkan tulisan debug
+      home: LoginPage(),
+      initialRoute: '/login',
       getPages: [
         GetPage(name: '/login', page: () => LoginPage()),
         GetPage(name: '/register', page: () => RegisterPage()),
@@ -44,13 +43,22 @@ void main() async {
       ],
     ),
   );
+
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Saving Tracker',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      debugShowCheckedModeBanner: false,
       home: MyHomePage(),
+      routes: {
+        '/userProfile': (context) => UserProfile(username: 'User Name', controller: ExpenseModel()), // Tambahkan rute untuk halaman profil
+      },
     );
   }
 }
@@ -71,6 +79,25 @@ class _MyHomePageState extends State<MyHomePage> {
     databaseController = Get.find<DatabaseController>();
     refreshExpenses();
     fetchAppwriteExpenses();
+  }
+
+  void _addExpense(Expense expense) async {
+    await databaseController.addExpenseToAppwrite(expense);
+    await fetchAppwriteExpenses(); // Ambil data yang diperbarui setelah menambahkan pengeluaran baru
+
+    // Setelah menambahkan data, pastikan untuk menampilkan kembali form input jika diperlukan
+    setState(() {
+      isExpenseFormVisible = false;
+    });
+  }
+
+
+  Future<void> _deleteExpense(Document document) async {
+    await databaseController.deleteExpenseFromAppwrite(document.$id);
+    await fetchAppwriteExpenses(); // Ambil data yang diperbarui
+    setState(() {
+      appwriteExpenses.remove(document);
+    });
   }
 
   Future<void> fetchAppwriteExpenses() async {
@@ -110,18 +137,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<void> _deleteExpense(Document document) async {
-    await databaseController.deleteExpenseFromAppwrite(document.$id);
-    setState(() {
-      appwriteExpenses.remove(document);
-    });
-  }
-
-  Future<void> _addExpense(Expense expense) async {
-    await databaseController.addExpenseToAppwrite(expense);
-    refreshExpenses(); // Perbarui data setelah menambahkan
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,6 +161,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   return BudgetScreen();
                 },
               ));
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.account_circle),
+            onPressed: () {
+              Navigator.pushNamed(context, '/userProfile'); // Navigasi ke halaman profil
             },
           ),
         ],
@@ -225,8 +246,8 @@ class _MyHomePageState extends State<MyHomePage> {
             isExpenseFormVisible
                 ? AddExpenseForm(
               onExpenseAdded: (expense) async {
-                await databaseController.addExpenseToAppwrite(expense);
-                fetchAppwriteExpenses(); // Refresh list after adding new expense
+                _addExpense(expense); // Memanggil _addExpense yang diperbarui
+                fetchAppwriteExpenses(); // Memperbarui daftar setelah menambahkan expense baru
               },
             )
                 : Container(),
@@ -236,6 +257,20 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: toggleExpenseFormVisibility,
         child: Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class UserProfilePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('User Profile'),
+      ),
+      body: Center(
+        child: Text('This is the User Profile page'), // Ganti dengan tampilan halaman profil Anda
       ),
     );
   }
