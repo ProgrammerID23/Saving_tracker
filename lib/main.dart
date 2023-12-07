@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:saving_tracker/Controller/StorageCpntrololer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'Views/AddExpense.dart';
@@ -16,6 +17,7 @@ import 'Views/RegisterPage.dart';
 import 'package:saving_tracker/Views/BudgetView.dart';
 import 'Views/UserProfile.dart';
 import 'firebase_options.dart';
+import 'package:flutter/material.dart';
 
 void main() async {
   await dotenv.load(fileName: '.env');
@@ -27,23 +29,30 @@ void main() async {
   await FirebaseMessagingHandler().initPushNotification();
   await FirebaseMessagingHandler().initLocalNotification();
   Get.put(DatabaseController());
+  Get.put(StorageController());
 
   runApp(
     GetMaterialApp(
-      debugShowCheckedModeBanner: false, // Nonaktifkan tulisan debug
+      debugShowCheckedModeBanner: false,
       home: LoginPage(),
       initialRoute: '/login',
       getPages: [
         GetPage(name: '/login', page: () => LoginPage()),
         GetPage(name: '/register', page: () => RegisterPage()),
-        GetPage(name: '/home', page: () => ChangeNotifierProvider(
-          create: (context) => ExpenseModel(),
-          child: MyApp(),
-        )),
+        GetPage(
+          name: '/home',
+          page: () => ChangeNotifierProvider(
+            create: (context) => ExpenseModel(),
+            child: MyApp(),
+          ),
+        ),
+        GetPage(
+            name: '/userProfile',
+            page: () =>
+                UserProfilePage()), // Tambahkan rute untuk halaman profil
       ],
     ),
   );
-
 }
 
 class MyApp extends StatelessWidget {
@@ -57,7 +66,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: MyHomePage(),
       routes: {
-        '/userProfile': (context) => UserProfile(username: 'User Name', controller: ExpenseModel()), // Tambahkan rute untuk halaman profil
+        '/userProfile': (context) =>
+            UserProfile(username: 'User Name', controller: ExpenseModel()),
+        // Tambahkan rute untuk halaman profil dengan parameter username dan controller yang sesuai
       },
     );
   }
@@ -91,7 +102,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-
   Future<void> _deleteExpense(Document document) async {
     await databaseController.deleteExpenseFromAppwrite(document.$id);
     await fetchAppwriteExpenses(); // Ambil data yang diperbarui
@@ -124,7 +134,8 @@ class _MyHomePageState extends State<MyHomePage> {
         description: document.data['Description'] ?? '',
       ),
       onExpenseAdded: (editedExpense) async {
-        await databaseController.updateExpenseInAppwrite(document.$id, editedExpense);
+        await databaseController.updateExpenseInAppwrite(
+            document.$id, editedExpense);
         fetchAppwriteExpenses(); // Refresh list after edit
       },
     ));
@@ -166,7 +177,10 @@ class _MyHomePageState extends State<MyHomePage> {
           IconButton(
             icon: Icon(Icons.account_circle),
             onPressed: () {
-              Navigator.pushNamed(context, '/userProfile'); // Navigasi ke halaman profil
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => UserProfile(
+                    username: 'User Name', controller: ExpenseModel()),
+              ));
             },
           ),
         ],
@@ -231,7 +245,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 Text('Amount: $amount'),
                                 Text('Date: $date'),
                                 Text('Category: $category'),
-                                if (description != null && description.isNotEmpty)
+                                if (description != null &&
+                                    description.isNotEmpty)
                                   Text('Description: $description'),
                               ],
                             ),
@@ -245,11 +260,12 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             isExpenseFormVisible
                 ? AddExpenseForm(
-              onExpenseAdded: (expense) async {
-                _addExpense(expense); // Memanggil _addExpense yang diperbarui
-                fetchAppwriteExpenses(); // Memperbarui daftar setelah menambahkan expense baru
-              },
-            )
+                    onExpenseAdded: (expense) async {
+                      _addExpense(
+                          expense); // Memanggil _addExpense yang diperbarui
+                      fetchAppwriteExpenses(); // Memperbarui daftar setelah menambahkan expense baru
+                    },
+                  )
                 : Container(),
           ],
         ),
@@ -270,7 +286,7 @@ class UserProfilePage extends StatelessWidget {
         title: Text('User Profile'),
       ),
       body: Center(
-        child: Text('This is the User Profile page'), // Ganti dengan tampilan halaman profil Anda
+        child: Text('This is the User Profile page'),
       ),
     );
   }
