@@ -6,7 +6,6 @@ import 'package:saving_tracker/Controller/StorageCpntrololer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Model/ExpenseModel.dart';
 
-
 class UserProfile extends StatefulWidget {
   final ExpenseModel controller; // Gantilah dengan ExpenseModel yang sesuai
   final String username;
