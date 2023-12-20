@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
+import 'package:mockito/mockito.dart';
+import 'package:package_info/package_info.dart';
 import 'package:provider/provider.dart';
 import 'package:saving_tracker/Controller/StorageCpntrololer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,9 +19,9 @@ import 'Views/RegisterPage.dart';
 import 'package:saving_tracker/Views/BudgetView.dart';
 import 'Views/UserProfile.dart';
 import 'firebase_options.dart';
-import 'package:flutter/material.dart';
 
-void main() async {
+class MockDatabaseController extends Mock implements DatabaseController {}
+  void main() async {
   await dotenv.load(fileName: '.env');
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -30,6 +32,7 @@ void main() async {
   await FirebaseMessagingHandler().initLocalNotification();
   Get.put(DatabaseController());
   Get.put(StorageController());
+  PackageInfo packageInfo = await PackageInfo.fromPlatform();
 
   runApp(
     GetMaterialApp(

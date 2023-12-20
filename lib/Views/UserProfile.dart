@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:saving_tracker/Controller/StorageCpntrololer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Controller/Database_Controller.dart';
 import '../Model/ExpenseModel.dart';
 
 class UserProfile extends StatefulWidget {
@@ -19,10 +20,13 @@ class UserProfile extends StatefulWidget {
 class _UserProfileState extends State<UserProfile> {
   File? _pickedImage; // Menyimpan gambar yang dipilih oleh pengguna
   final _imagePicker = ImagePicker();
+  late double totalExpenses = 0;
+  final DatabaseController _databaseController = DatabaseController();
 
   @override
   void initState() {
     super.initState();
+    _fetchTotalExpenses;
     _getSavedImagePath().then((imagePath) {
       if (imagePath != null) {
         setState(() {
@@ -57,8 +61,20 @@ class _UserProfileState extends State<UserProfile> {
     return prefs.getString('profile_image');
   }
 
+  Future<void> _fetchTotalExpenses() async {
+    try {
+      final totalAmount = await _databaseController.getTotalExpensesAmount();
+      setState(() {
+        totalExpenses = totalAmount;
+      });
+    } catch (error) {
+      print("Error fetching total expenses: $error");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text('User Profile'),
@@ -125,7 +141,7 @@ class _UserProfileState extends State<UserProfile> {
             ),
             SizedBox(height: 10),
             Text(
-              'Total Expenses: \$${widget.controller.totalExpense.toStringAsFixed(2)}',
+              'Total Expenses: \$${totalExpenses.toStringAsFixed(2)}',
               style: TextStyle(
                 fontSize: 20,
                 color: Colors.blue,

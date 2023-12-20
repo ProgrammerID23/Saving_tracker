@@ -1,5 +1,8 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:saving_tracker/Controller/Client_Controler.dart';
 
 import '../Model/ExpenseModel.dart';
@@ -17,6 +20,31 @@ class DatabaseController extends ClientController {
     super.onInit();
     // Inisialisasi koneksi ke Appwrite di sini
     database = Databases(client);
+  }
+
+  Future<double> getTotalExpensesAmount() async {
+    try {
+      final response = await database.listDocuments(
+        collectionId: '65686a8e93f156168fed', // Ganti dengan ID koleksi di Appwrite
+        databaseId: '656850265be9cb7d20c9', // Ganti dengan ID database di Appwrite
+      );
+
+      final List<Document> documents = response.documents;
+
+      // Hitung total amount dari semua pengeluaran
+      double totalAmount = 0;
+      for (final document in documents) {
+        final amount = document.data['Amount'];
+        if (amount != null && amount is num) {
+          totalAmount += amount.toDouble();
+        }
+      }
+
+      return totalAmount;
+    } catch (error) {
+      print("Error retrieving expenses: $error");
+      return 0;
+    }
   }
 
   Future<void> addExpenseToAppwrite(Expense expense) async {
@@ -37,8 +65,12 @@ class DatabaseController extends ClientController {
       );
 
       print('Expense added to Appwrite: ${response.data}');
+      Get.snackbar('Success', 'Added to Appwrite',
+          backgroundColor: Colors.green);
     } catch (e) {
       print('Error adding expense to Appwrite: $e');
+      Get.snackbar('Error', 'Added to Appwrite',
+          backgroundColor: Colors.red);
     }
   }
 
@@ -48,10 +80,12 @@ class DatabaseController extends ClientController {
         collectionId: "65686a8e93f156168fed",
         databaseId: '656850265be9cb7d20c9',
       );
-
+      Get.snackbar('Success', 'Get from Appwrite',
+          backgroundColor: Colors.green);
       return response.documents;
     } catch (error) {
-      print("Error retrieving expenses: $error");
+      Get.snackbar('Error', 'Get from Appwrite',
+          backgroundColor: Colors.red);
       return [];
     }
   }

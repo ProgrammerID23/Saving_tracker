@@ -30,6 +30,7 @@ environment:
 dependencies:
   mockito: ^5.4.2
   build_runner: ^2.4.6
+  package_info: ^2.0.2
   flutter:
     sdk: flutter
   get: 4.6.5
